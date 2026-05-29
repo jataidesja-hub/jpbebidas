@@ -616,9 +616,7 @@ export default function ClientHome() {
       <a
         href={`https://wa.me/${config.whatsapp?.replace(/\D/g, '')}`}
         target="_blank" rel="noreferrer"
-        onClick={(e) => {
-          if (isDraggingWa) e.preventDefault();
-        }}
+        onClick={(e) => { if (isDraggingWa) e.preventDefault(); }}
         onPointerDown={handleWaPointerDown}
         onPointerMove={handleWaPointerMove}
         onPointerUp={handleWaPointerUp}
@@ -627,6 +625,18 @@ export default function ClientHome() {
       >
         <Phone className="w-8 h-8 pointer-events-none" />
       </a>
+
+      {/* INSTAGRAM FIXED BTN */}
+      {config.instagram && (
+        <a
+          href={config.instagram.startsWith('http') ? config.instagram : `https://instagram.com/${config.instagram.replace('@','')}`}
+          target="_blank" rel="noreferrer"
+          className="fixed bottom-44 right-6 w-14 h-14 text-white rounded-full flex items-center justify-center shadow-xl z-[400] border-4 border-white dark:border-zinc-900"
+          style={{ background: 'radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%)' }}
+        >
+          <Instagram className="w-7 h-7 pointer-events-none" />
+        </a>
+      )}
     </>
   );
 }

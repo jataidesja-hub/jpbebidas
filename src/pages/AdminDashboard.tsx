@@ -915,6 +915,9 @@ function ConfigTab() {
           <InputField label="WhatsApp da Loja (com DDD)" value={form.whatsapp?.startsWith('+55') ? form.whatsapp : '+55 ' + (form.whatsapp || '')} onChange={e => { let v = e.target.value; if (!v.startsWith('+55 ')) v = '+55 ' + v.replace(/^\+?55\s*/, ''); setForm(f => ({...f, whatsapp: v})); }} placeholder="5511999999999" />
           <InputField label="Chave PIX" value={form.pixKey || ''} onChange={e => setForm(f => ({ ...f, pixKey: e.target.value }))} placeholder="Sua chave PIX" />
         </div>
+        <div className="grid grid-cols-2 gap-4">
+          <InputField label="Instagram (@usuario ou link)" value={(form as any).instagram || ''} onChange={e => setForm(f => ({ ...f, instagram: e.target.value } as any))} placeholder="@pointdosom" />
+        </div>
         <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800">
           <h3 className="font-bold text-zinc-900 dark:text-white flex items-center gap-2 mb-4"><Megaphone className="w-5 h-5" /> Informativos</h3>
           <p className="text-xs text-zinc-500 mb-2">Este texto aparecerá no topo do aplicativo para todos os clientes.</p>

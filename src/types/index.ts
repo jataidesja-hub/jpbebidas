@@ -59,6 +59,7 @@ export interface StoreConfig {
   deliveryFeePerKm: number;
   slogan: string;
   whatsapp: string;
+  instagram?: string;
   pixKey?: string;
   openingHours?: OpeningHours;
   informativeText?: string; // New field
