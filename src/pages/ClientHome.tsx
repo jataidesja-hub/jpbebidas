@@ -308,7 +308,9 @@ export default function ClientHome() {
 
           <header className="sticky top-0 z-50 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-b border-zinc-100 dark:border-zinc-800 shadow-sm h-16 flex items-center justify-between px-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-black" style={{ backgroundColor: config.primaryColor }}>{config.name.charAt(0)}</div>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-black bg-cover bg-center overflow-hidden" style={{ backgroundColor: config.primaryColor, backgroundImage: config.logoUrl ? `url(${config.logoUrl})` : 'none' }}>
+                {!config.logoUrl && config.name.charAt(0)}
+              </div>
               <div>
                 <h1 className="font-black italic uppercase text-lg leading-none" style={{ color: config.primaryColor }}>{config.name}</h1>
                 <span className={`text-[10px] font-bold uppercase tracking-widest ${isOpen ? 'text-emerald-500' : 'text-red-500'}`}>{isOpen ? 'Aberto' : 'Fechado'}</span>
@@ -599,8 +601,8 @@ export default function ClientHome() {
       {showInstallBanner && (
         <div className="fixed bottom-32 left-4 right-4 bg-white dark:bg-zinc-900 p-4 rounded-2xl shadow-2xl border border-zinc-100 dark:border-zinc-800 z-[400] flex items-center justify-between animate-in slide-in-from-bottom-10 md:hidden">
           <div className="flex items-center gap-3 shrink-0">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg" style={{ backgroundColor: config.primaryColor }}>
-              <Download className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg bg-cover bg-center overflow-hidden" style={{ backgroundColor: config.primaryColor, backgroundImage: config.logoUrl ? `url(${config.logoUrl})` : 'none' }}>
+              {!config.logoUrl && <Download className="w-5 h-5" />}
             </div>
             <div>
               <p className="text-sm font-black uppercase tracking-tight">Instalar Aplicativo</p>
