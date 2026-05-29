@@ -467,7 +467,13 @@ function ProductsTab() {
           <div className={`grid gap-4 ${isExternal ? 'grid-cols-1' : 'grid-cols-2'}`}>
             <InputField label="Preço (R$)" type="number" step="0.01" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} placeholder="0.00" />
             {!isExternal && (
-              <InputField label="Estoque Atual" type="number" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} placeholder="0" />
+              <div className="flex gap-4 items-center">
+                <InputField label="Estoque Atual" type="number" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} placeholder="0" />
+                <div className="flex items-center gap-2 mt-6">
+                  <input type="checkbox" id="stockToggle" checked={Number(form.stock) > 0 || form.stock === ''} onChange={e => setForm(f => ({ ...f, stock: e.target.checked ? '999' : '0' }))} className="w-5 h-5" />
+                  <label htmlFor="stockToggle" className="font-bold text-sm">Disponível?</label>
+                </div>
+              </div>
             )}
           </div>
 
@@ -510,6 +516,7 @@ function ProductsTab() {
                 ref={fileInputRef} 
                 className="hidden" 
                 accept="image/*"
+                capture="environment"
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (file) {
@@ -802,7 +809,7 @@ function ConfigTab() {
           <InputField label="Slogan" value={form.slogan} onChange={e => setForm(f => ({ ...f, slogan: e.target.value }))} placeholder="Ex: O melhor sabor!" />
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <InputField label="WhatsApp da Loja" value={form.whatsapp} onChange={e => setForm(f => ({ ...f, whatsapp: e.target.value }))} placeholder="5511999999999" />
+          <InputField label="WhatsApp da Loja (com DDD)" value={form.whatsapp || '+55 '} onChange={e => setForm(f => ({ ...f, whatsapp: e.target.value.startsWith('+55') ? e.target.value : '+55 ' + e.target.value.replace('+55', '') }))} placeholder="5511999999999" />
           <InputField label="Chave PIX" value={form.pixKey || ''} onChange={e => setForm(f => ({ ...f, pixKey: e.target.value }))} placeholder="Sua chave PIX" />
         </div>
         <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800">
@@ -857,6 +864,7 @@ function ConfigTab() {
               ref={fileInputRef} 
               className="hidden" 
               accept="image/*"
+              capture="environment"
               onChange={async (e) => {
                 const file = e.target.files?.[0];
                 if (file) {
@@ -948,7 +956,15 @@ function ConfigTab() {
           <Button variant="outline" onClick={handleDetectLocation} className="h-12 rounded-xl mb-2 mt-2"><MapPin className="w-5 h-5 mr-2" /> Usar meu GPS atual</Button>
           {form.lat !== 0 && <span className="text-xs text-emerald-500 font-bold self-center">✓ Cooordenadas ajustadas via mapa</span>}
         </div>
-        <InputField label="Taxa de Entrega por KM (R$)" type="number" step="0.50" value={form.deliveryFeePerKm.toString()} onChange={e => setForm(f => ({ ...f, deliveryFeePerKm: parseFloat(e.target.value) || 0 }))} />
+        
+        <div className="flex items-center gap-2 mb-4">
+          <input type="checkbox" id="freeDelivery" checked={form.deliveryFeePerKm === 0} onChange={e => setForm(f => ({ ...f, deliveryFeePerKm: e.target.checked ? 0 : 2.5 }))} className="w-5 h-5" />
+          <label htmlFor="freeDelivery" className="font-bold text-sm text-zinc-700 dark:text-zinc-300">Entrega Grátis (Zerar Taxa)</label>
+        </div>
+        
+        {form.deliveryFeePerKm > 0 && (
+          <InputField label="Taxa de Entrega por KM (R$)" type="number" step="0.50" value={form.deliveryFeePerKm.toString()} onChange={e => setForm(f => ({ ...f, deliveryFeePerKm: parseFloat(e.target.value) || 0 }))} />
+        )}
       </div>
 
       <Button onClick={handleSave} className="w-full h-14 rounded-2xl text-lg">

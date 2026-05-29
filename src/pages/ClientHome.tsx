@@ -56,7 +56,7 @@ export default function ClientHome() {
 
   // Checkout form
   const [custName, setCustName] = useState("");
-  const [custWhatsapp, setCustWhatsapp] = useState("");
+  const [custWhatsapp, setCustWhatsapp] = useState("+55 ");
   const [custAddress, setCustAddress] = useState("");
   const [custLat, setCustLat] = useState(0);
   const [custLng, setCustLng] = useState(0);
@@ -105,7 +105,7 @@ export default function ClientHome() {
     const savedLng = localStorage.getItem('mx_cust_lng');
     
     if (savedName) setCustName(savedName);
-    if (savedPhone) setCustWhatsapp(savedPhone);
+    if (savedPhone) setCustWhatsapp(savedPhone.startsWith('+55') ? savedPhone : '+55 ' + savedPhone);
     if (savedAddress) setCustAddress(savedAddress);
     if (savedLat) setCustLat(Number(savedLat));
     if (savedLng) setCustLng(Number(savedLng));
@@ -456,7 +456,7 @@ export default function ClientHome() {
                   <h2 className="text-3xl font-black italic uppercase tracking-tighter">Finalizar</h2>
                   <div className="space-y-4">
                     <input value={custName} onChange={e => setCustName(e.target.value)} placeholder="Seu Nome Completo" className="w-full h-12 bg-zinc-50 dark:bg-zinc-800 rounded-xl px-4 font-bold outline-none border border-zinc-200 dark:border-zinc-700 focus:ring-2 ring-primary-500 transition-all text-sm" />
-                    <input value={custWhatsapp} onChange={e => setCustWhatsapp(e.target.value)} placeholder="Seu WhatsApp (com DDD)" className="w-full h-12 bg-zinc-50 dark:bg-zinc-800 rounded-xl px-4 font-bold outline-none border border-zinc-200 dark:border-zinc-700 focus:ring-2 ring-primary-500 transition-all text-sm" />
+                    <input value={custWhatsapp || '+55 '} onChange={e => setCustWhatsapp(e.target.value.startsWith('+55') ? e.target.value : '+55 ' + e.target.value.replace('+55', ''))} placeholder="Seu WhatsApp (com DDD)" className="w-full h-12 bg-zinc-50 dark:bg-zinc-800 rounded-xl px-4 font-bold outline-none border border-zinc-200 dark:border-zinc-700 focus:ring-2 ring-primary-500 transition-all text-sm" />
                     
                     <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800">
                       <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2"><MapPin className="w-4 h-4" /> Local de Entrega</p>
