@@ -577,7 +577,9 @@ export default function ClientHome() {
             <div className="p-8">
               <span className="text-[10px] font-black uppercase text-zinc-400">{viewingProduct.category}</span>
               <h2 className="text-3xl font-black italic uppercase mt-1">{viewingProduct.name}</h2>
-              <p className="text-zinc-500 font-bold mt-4 italic">{viewingProduct.description || "Produto essencial para sua obra."}</p>
+              {viewingProduct.description && (
+                <p className="text-zinc-500 font-bold mt-4 italic whitespace-pre-wrap">{viewingProduct.description}</p>
+              )}
               <div className="flex items-center justify-between py-6 my-6 border-y">
                 {viewingProduct.price > 0 && <span className="text-4xl font-black italic" style={{ color: config.primaryColor }}>{formatCurrency(getPromoPrice(viewingProduct.id, viewingProduct.price) ?? viewingProduct.price)}</span>}
                 {!viewingProduct.externalUrl && <span className={`text-xs font-black uppercase ${(viewingProduct.stock ?? 0) <= 0 ? 'text-red-500' : 'text-emerald-500'}`}>{(viewingProduct.stock ?? 0) <= 0 ? 'Esgotado' : `${viewingProduct.stock} un.`}</span>}
