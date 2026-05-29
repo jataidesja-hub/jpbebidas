@@ -23,24 +23,24 @@ export default defineConfig({
 
 
       manifest: {
-        name: 'Mx Materiais Elétricos',
-        short_name: 'M X',
-        description: 'Painel do Cliente - Mx Materiais Elétricos',
+        name: 'Point do SOM',
+        short_name: 'Point do SOM',
+        description: 'Painel do Cliente - Point do SOM',
 
         theme_color: '#ffffff',
         icons: [
           {
-            src: 'mx-logo-v2-192.png',
+            src: 'point-logo-192.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'mx-logo-v2-512.png',
+            src: 'point-logo-512.png',
             sizes: '512x512',
             type: 'image/png'
           },
           {
-            src: 'mx-logo-v2-512.png',
+            src: 'point-logo-512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'
