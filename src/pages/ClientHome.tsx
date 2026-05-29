@@ -309,7 +309,7 @@ export default function ClientHome() {
             <section className="sticky top-16 z-40 bg-zinc-50/80 dark:bg-zinc-950/80 backdrop-blur-xl py-4 border-b border-zinc-200 flex gap-3 px-4 overflow-x-auto hide-scrollbar">
               {allCategories.map(cat => (
                 <button key={cat} onClick={() => setActiveCategory(cat)}
-                  className={`h-10 px-6 rounded-full font-bold uppercase text-[10px] tracking-widest border transition-all ${activeCategory === cat ? 'text-white border-transparent shadow-lg' : 'bg-white text-zinc-500'}`}
+                  className={`h-10 px-6 rounded-full font-bold uppercase text-[10px] tracking-widest border transition-all whitespace-nowrap flex-shrink-0 flex items-center justify-center ${activeCategory === cat ? 'text-white border-transparent shadow-lg' : 'bg-white text-zinc-500'}`}
                   style={activeCategory === cat ? { backgroundColor: config.primaryColor } : {}}>
                   {cat}
                 </button>
