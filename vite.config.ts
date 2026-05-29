@@ -26,8 +26,11 @@ export default defineConfig({
         name: 'Point do SOM',
         short_name: 'Point do SOM',
         description: 'Painel do Cliente - Point do SOM',
-
-        theme_color: '#ffffff',
+        display: 'standalone',
+        start_url: '/',
+        background_color: '#000000',
+        theme_color: '#000000',
+        orientation: 'portrait',
         icons: [
           {
             src: 'point-logo-192.png',
@@ -43,10 +46,8 @@ export default defineConfig({
             src: 'point-logo-512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'maskable'
           }
-
-
         ]
       }
     })
