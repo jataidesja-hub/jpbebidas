@@ -118,6 +118,33 @@ export default function ClientHome() {
     setTimeout(() => setIsDraggingWa(false), 100);
   };
 
+  // Instagram Drag State
+  const [igPos, setIgPos] = useState({ x: 0, y: 0 });
+  const [isDraggingIg, setIsDraggingIg] = useState(false);
+  const igDragRef = useRef<{ startX: number, startY: number, initX: number, initY: number } | null>(null);
+
+  const handleIgPointerDown = (e: React.PointerEvent) => {
+    // @ts-ignore
+    e.target.setPointerCapture(e.pointerId);
+    igDragRef.current = { startX: e.clientX, startY: e.clientY, initX: igPos.x, initY: igPos.y };
+  };
+
+  const handleIgPointerMove = (e: React.PointerEvent) => {
+    if (!igDragRef.current) return;
+    setIsDraggingIg(true);
+    setIgPos({ 
+      x: igDragRef.current.initX + (e.clientX - igDragRef.current.startX), 
+      y: igDragRef.current.initY + (e.clientY - igDragRef.current.startY) 
+    });
+  };
+
+  const handleIgPointerUp = (e: React.PointerEvent) => {
+    // @ts-ignore
+    e.target.releasePointerCapture(e.pointerId);
+    igDragRef.current = null;
+    setTimeout(() => setIsDraggingIg(false), 100);
+  };
+
   // Initial Load & Auth logic would go here if needed
   
   // Carregar dados salvos do cliente para preenchimento automático
@@ -635,8 +662,12 @@ export default function ClientHome() {
         <a
           href={config.instagram.startsWith('http') ? config.instagram : `https://instagram.com/${config.instagram.replace('@','')}`}
           target="_blank" rel="noreferrer"
-          className="fixed bottom-44 right-6 w-14 h-14 text-white rounded-full flex items-center justify-center shadow-xl z-[400] border-4 border-white dark:border-zinc-900"
-          style={{ background: 'radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%)' }}
+          onClick={(e) => { if (isDraggingIg) e.preventDefault(); }}
+          onPointerDown={handleIgPointerDown}
+          onPointerMove={handleIgPointerMove}
+          onPointerUp={handleIgPointerUp}
+          style={{ transform: `translate(${igPos.x}px, ${igPos.y}px)`, touchAction: 'none', background: 'radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%)' }}
+          className="fixed bottom-44 right-6 w-14 h-14 text-white rounded-full flex items-center justify-center shadow-xl z-[400] border-4 border-white dark:border-zinc-900 cursor-grab active:cursor-grabbing"
         >
           <Instagram className="w-7 h-7 pointer-events-none" />
         </a>
