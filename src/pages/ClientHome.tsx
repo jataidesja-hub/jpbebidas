@@ -39,7 +39,53 @@ function PromoTimer({ expiresAt }: { expiresAt: string }) {
   return <span className="font-mono bg-black/30 px-2 py-0.5 rounded-lg ml-2 text-xs border border-white/20 animate-pulse">{timeLeft}</span>;
 }
 
+function ProductMediaCarousel({ product }: { product: any }) {
+  const allMedia = [product.imageUrl, ...(product.mediaUrls || [])].filter(Boolean);
+  const [idx, setIdx] = useState(0);
+  const touchStartX = useRef(0);
+
+  const prev = () => setIdx(i => (i - 1 + allMedia.length) % allMedia.length);
+  const next = () => setIdx(i => (i + 1) % allMedia.length);
+
+  const getYouTubeId = (url: string) => {
+    const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([^&?/]+)/);
+    return m ? m[1] : null;
+  };
+
+  const renderMedia = (url: string) => {
+    const ytId = getYouTubeId(url);
+    if (ytId) return <iframe src={`https://www.youtube.com/embed/${ytId}`} className="w-full h-full" allowFullScreen />;
+    if (url.match(/\.(mp4|mov|webm)/i)) return <video src={url} controls className="w-full h-full object-cover" />;
+    return <img src={url} className="w-full h-full object-cover" />;
+  };
+
+  return (
+    <div className="aspect-video relative bg-black select-none"
+      onTouchStart={e => { touchStartX.current = e.touches[0].clientX; }}
+      onTouchEnd={e => {
+        const dx = e.changedTouches[0].clientX - touchStartX.current;
+        if (dx < -50) next();
+        else if (dx > 50) prev();
+      }}>
+      {renderMedia(allMedia[idx])}
+      {allMedia.length > 1 && (
+        <>
+          <button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-black/50 text-white rounded-full flex items-center justify-center backdrop-blur-sm z-10">‹</button>
+          <button onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-black/50 text-white rounded-full flex items-center justify-center backdrop-blur-sm z-10">›</button>
+          <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-10">
+            {allMedia.map((_, i) => (
+              <button key={i} onClick={() => setIdx(i)}
+                className={`w-2 h-2 rounded-full transition-all ${i === idx ? 'bg-white scale-125' : 'bg-white/40'}`} />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 function BannerCountdown({ expiresAt }: { expiresAt: string }) {
+
   const [timeLeft, setTimeLeft] = useState('');
   useEffect(() => {
     const calc = () => {
@@ -247,9 +293,7 @@ export default function ClientHome() {
   const removeFromCart = (productId: string) => setCart(prev => prev.filter(c => c.product.id !== productId));
   const cartCount = cart.reduce((acc, c) => acc + c.quantity, 0);
   const subtotal = cart.reduce((acc, c) => acc + (getPromoPrice(c.product.id, c.product.price) ?? c.product.price) * c.quantity, 0);
-  const distance = (config?.lat && config?.lng && custLat && custLng) ? calculateDistance(config.lat, config.lng, custLat, custLng) : 0;
-  const deliveryFee = distance * (config?.deliveryFeePerKm || 0);
-  const total = subtotal + deliveryFee;
+  const total = subtotal;
 
   const handleDetectLocation = () => {
     setLocating(true);
@@ -275,17 +319,22 @@ export default function ClientHome() {
     addOrder({
       items: cart, customerName: custName, customerWhatsapp: custWhatsapp,
       customerAddress: custAddress, customerLat: custLat, customerLng: custLng,
-      deliveryFee, subtotal, total, paymentMethod,
+      deliveryFee: 0, subtotal, total, paymentMethod,
       changeFor: paymentMethod === 'dinheiro' && changeFor ? parseFloat(changeFor) : null,
       isPaid: false
     });
 
     if (config.whatsapp) {
-      const itemsList = cart.map(c => `• ${c.quantity}x ${c.product.name}`).join('\n');
-      const mapLink = `https://www.google.com/maps/search/?api=1&query=${custLat},${custLng}`;
-      const changeMsg = paymentMethod === 'dinheiro' && changeFor ? `\n💵 *Troco para:* R$ ${changeFor}` : '';
-      
-      const msg = `🛒 *NOVO PEDIDO*\n\n👤 *Cliente:* ${custName}\n📱 *WhatsApp:* ${custWhatsapp}\n📍 *Endereço:* ${custAddress}\n🗺️ *Localização GPS:* ${mapLink}\n\n*ITENS:*\n${itemsList}\n\n💰 *Subtotal:* ${formatCurrency(subtotal)}\n🛵 *Entrega:* ${formatCurrency(deliveryFee)}\n💵 *TOTAL COMPRA:* ${formatCurrency(total)}\n\n💳 *Pagamento:* ${paymentMethod}${changeMsg}`;
+      const itemsList = cart.map(c => {
+        const photos = (c.product.mediaUrls && c.product.mediaUrls.length > 0)
+          ? c.product.mediaUrls.slice(0, 3).map(u => `\n    \uD83D\uDCF8 ${u}`).join('')
+          : c.product.imageUrl ? `\n    \uD83D\uDCF8 ${c.product.imageUrl}` : '';
+        return `\u2022 ${c.quantity}x ${c.product.name}${photos}`;
+      }).join('\n');
+      const mapLink = custLat && custLng ? `https://www.google.com/maps/search/?api=1&query=${custLat},${custLng}` : 'N\u00e3o informado';
+      const changeMsg = paymentMethod === 'dinheiro' && changeFor ? `\n\uD83D\uDCB5 *Troco para:* R$ ${changeFor}` : '';
+      const payLabels: Record<string, string> = { pix: 'PIX', dinheiro: 'Dinheiro vivo', cartao_credito: 'Cart\u00e3o de Cr\u00e9dito', cartao_debito: 'Cart\u00e3o de D\u00e9bito' };
+      const msg = `\uD83D\uDED2 *NOVO PEDIDO*\n\n\uD83D\uDC64 *Cliente:* ${custName}\n\uD83D\uDCF1 *WhatsApp:* ${custWhatsapp}\n\uD83D\uDCCD *Endere\u00e7o:* ${custAddress}\n\uD83D\uDDFA\uFE0F *Localiza\u00e7\u00e3o GPS:* ${mapLink}\n\n*ITENS:*\n${itemsList}\n\n\uD83D\uDCB0 *Subtotal:* ${formatCurrency(subtotal)}\n\n\uD83D\uDCB3 *Pagamento:* ${payLabels[paymentMethod] || paymentMethod}${changeMsg}\n\n*Frete a combinar*`;
       let waNumber = config.whatsapp.replace(/\D/g, '');
       if (waNumber.length <= 11) waNumber = '55' + waNumber;
       window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`, '_blank');
@@ -587,10 +636,13 @@ export default function ClientHome() {
                       )}
                     </div>
                   </div>
-                  <div className="bg-zinc-50 dark:bg-zinc-800 p-6 rounded-2xl space-y-2 border shadow-inner">
-                    <div className="flex justify-between text-xs font-bold text-zinc-400 uppercase tracking-widest"><span>Frete</span><span>{formatCurrency(deliveryFee)}</span></div>
-                    <div className="flex justify-between items-center pt-3 border-t"><span className="text-xl font-black italic uppercase">Total</span><span className="text-3xl font-black italic" style={{ color: config.primaryColor }}>{formatCurrency(total)}</span></div>
-                  </div>
+                    <div className="bg-zinc-50 dark:bg-zinc-800 p-6 rounded-2xl space-y-2 border shadow-inner">
+                      <div className="flex justify-between items-center pt-1">
+                        <span className="text-xl font-black italic uppercase">Subtotal</span>
+                        <span className="text-3xl font-black italic" style={{ color: config.primaryColor }}>{formatCurrency(total)}</span>
+                      </div>
+                      <p className="text-xs text-zinc-400 italic">Frete a combinar pelo WhatsApp</p>
+                    </div>
                   <button onClick={handleSendOrder} className="w-full h-16 text-white rounded-2xl font-black uppercase text-xl shadow-2xl flex items-center justify-center gap-3" style={{ backgroundColor: config.primaryColor }}>Confirmar Pedido <Send className="w-5 h-5" /></button>
                 </>
              )}
@@ -601,8 +653,8 @@ export default function ClientHome() {
       {viewingProduct && (
         <div className="fixed inset-0 z-[450] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-in fade-in" onClick={() => setViewingProduct(null)}>
           <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] w-full max-w-lg overflow-hidden relative shadow-2xl animate-in zoom-in-95" onClick={e => e.stopPropagation()}>
-            <button onClick={() => setViewingProduct(null)} className="absolute top-6 right-6 w-12 h-12 bg-black/20 text-white rounded-full flex items-center justify-center backdrop-blur-md"><X className="w-7 h-7" /></button>
-            <div className="aspect-video relative"><img src={viewingProduct.imageUrl || '/placeholder.png'} className="w-full h-full object-cover" /></div>
+            <button onClick={() => setViewingProduct(null)} className="absolute top-6 right-6 w-12 h-12 bg-black/20 text-white rounded-full flex items-center justify-center backdrop-blur-md z-10"><X className="w-7 h-7" /></button>
+            <ProductMediaCarousel product={viewingProduct} />
             <div className="p-8">
               <span className="text-[10px] font-black uppercase text-zinc-400">{viewingProduct.category}</span>
               <h2 className="text-3xl font-black italic uppercase mt-1">{viewingProduct.name}</h2>

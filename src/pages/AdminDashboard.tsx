@@ -264,7 +264,9 @@ function ProductsTab() {
   const [isUploading, setIsUploading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
-  const [form, setForm] = useState({ name: '', description: '', price: '', stock: '', category: '', imageUrl: '', externalUrl: '' });
+  const [form, setForm] = useState({ name: '', description: '', price: '', stock: '', category: '', imageUrl: '', externalUrl: '', mediaUrls: [] as string[] });
+  const [galleryUploading, setGalleryUploading] = useState(false);
+  const galleryFileRef = useRef<HTMLInputElement>(null);
   const [imagePreviewError, setImagePreviewError] = useState(false);
   const [searchFilter, setSearchFilter] = useState('');
   const [activeCategory, setActiveCategory] = useState('Todas');
@@ -285,7 +287,7 @@ function ProductsTab() {
 
   const openNew = () => {
     setEditing(null);
-    setForm({ name: '', description: '', price: '', stock: '', category: categories[0]?.name || '', imageUrl: '', externalUrl: '' });
+    setForm({ name: '', description: '', price: '', stock: '', category: categories[0]?.name || '', imageUrl: '', externalUrl: '', mediaUrls: [] });
     setImagePreviewError(false);
     setModalOpen(true);
   };
@@ -299,7 +301,8 @@ function ProductsTab() {
       stock: p.stock?.toString() || '',
       category: p.category,
       imageUrl: p.imageUrl || '',
-      externalUrl: p.externalUrl || ''
+      externalUrl: p.externalUrl || '',
+      mediaUrls: p.mediaUrls || []
     });
     setImagePreviewError(false);
     setModalOpen(true);
@@ -337,6 +340,7 @@ function ProductsTab() {
       stock: parseFloat(form.stock) || 0,
       category: form.category,
       imageUrl: form.imageUrl.trim(),
+      mediaUrls: form.mediaUrls,
       externalUrl: isExternal ? form.externalUrl.trim() : undefined,
     };
     if (editing) {
@@ -571,6 +575,54 @@ function ProductsTab() {
                 <p className="text-[10px] text-zinc-400 mt-1">Cole a URL acima para adicionar uma foto</p>
               </div>
             )}
+          </div>
+
+          </div>
+
+          {/* GALLERY */}
+          <div className="space-y-3">
+            <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
+              <ImageIcon className="w-3.5 h-3.5" /> Galeria de Fotos/Vídeos
+              <span className="text-zinc-400 font-normal normal-case tracking-normal">(opcional, até 10)</span>
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {form.mediaUrls.map((url, i) => (
+                <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-zinc-100 dark:bg-zinc-800 group">
+                  {url.match(/\.(mp4|mov|webm)/i)
+                    ? <video src={url} className="w-full h-full object-cover" />
+                    : url.includes('youtube') || url.includes('youtu.be')
+                    ? <div className="w-full h-full flex items-center justify-center"><ExternalLink className="w-6 h-6 text-red-500" /></div>
+                    : <img src={url} className="w-full h-full object-cover" />}
+                  <button onClick={() => setForm(f => ({ ...f, mediaUrls: f.mediaUrls.filter((_, j) => j !== i) }))}
+                    className="absolute top-1 right-1 w-6 h-6 bg-black/70 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+              {form.mediaUrls.length < 10 && (
+                <button onClick={() => galleryFileRef.current?.click()} disabled={galleryUploading}
+                  className="aspect-square rounded-xl border-2 border-dashed border-zinc-300 dark:border-zinc-700 flex flex-col items-center justify-center gap-1 text-zinc-400 hover:text-zinc-600 hover:border-zinc-400 transition-all">
+                  {galleryUploading ? <div className="w-5 h-5 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin" /> : <Plus className="w-6 h-6" />}
+                  <span className="text-[10px] font-bold">{galleryUploading ? 'Enviando...' : 'Adicionar'}</span>
+                </button>
+              )}
+            </div>
+            <input type="file" ref={galleryFileRef} className="hidden" accept="image/*,video/*" capture="environment"
+              onChange={async (e) => {
+                const file = e.target.files?.[0]; if (!file) return;
+                setGalleryUploading(true);
+                try { const url = await uploadImage(file); setForm(f => ({ ...f, mediaUrls: [...f.mediaUrls, url] })); }
+                catch { alert('Erro ao subir mídia'); } finally { setGalleryUploading(false); e.target.value = ''; }
+              }} />
+            <input type="url" placeholder="Ou cole URL de imagem/vídeo/YouTube..."
+              className="w-full h-10 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 outline-none focus:ring-2 ring-primary-500 text-sm text-zinc-900 dark:text-white"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const val = (e.target as HTMLInputElement).value.trim();
+                  if (val && form.mediaUrls.length < 10) { setForm(f => ({ ...f, mediaUrls: [...f.mediaUrls, val] })); (e.target as HTMLInputElement).value = ''; }
+                }
+              }} />
+            <p className="text-[10px] text-zinc-400">Cole a URL e pressione Enter para adicionar</p>
           </div>
 
           <Button onClick={handleSave} className="w-full h-12 rounded-xl mt-4">
