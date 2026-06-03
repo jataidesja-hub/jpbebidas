@@ -26,6 +26,7 @@ export default defineConfig({
         name: 'Point do SOM',
         short_name: 'Point do SOM',
         description: 'Painel do Cliente - Point do SOM',
+        id: '/',
         display: 'standalone',
         start_url: '/',
         background_color: '#000000',
