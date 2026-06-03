@@ -8,7 +8,7 @@ import {
   Package, LayoutGrid, Settings, BarChart, Megaphone, Search,
   MapPin, Plus, Save, LogOut, Trash2, Edit, X, Upload, Image as ImageIcon,
   Palette, Type, Phone, Store, ClipboardList, Map, Send, Link as LinkIcon, Eye,
-  Printer, Radio, Clock, ExternalLink, Globe, Loader2
+  Printer, Radio, Clock, ExternalLink, Globe, Loader2, Smartphone
 } from "lucide-react";
 
 
@@ -58,6 +58,20 @@ export default function AdminDashboard() {
 
 
   const [isAuthChecking, setIsAuthChecking] = useState(true);
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    const handler = (e: any) => { e.preventDefault(); setInstallPrompt(e); };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstall = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    await installPrompt.userChoice;
+    setInstallPrompt(null);
+  };
 
   useEffect(() => {
     const isAuth = localStorage.getItem("admin_auth");
@@ -153,6 +167,11 @@ export default function AdminDashboard() {
               <button onClick={() => window.open('/', '_blank')} className="p-2.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-400 rounded-xl transition-all" title="Ver Loja">
                 <Eye className="w-5 h-5" />
               </button>
+              {installPrompt && (
+                <button onClick={handleInstall} className="flex items-center gap-2 px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all" title="Instalar App ADM">
+                  <Smartphone className="w-4 h-4" /> Instalar ADM
+                </button>
+              )}
           </div>
         </header>
 
