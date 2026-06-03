@@ -540,8 +540,6 @@ function ProductsTab() {
             </select>
           </div>
 
-          </div>
-
           {/* GALLERY */}
           <div className="space-y-3">
             <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
