@@ -9,6 +9,15 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Point do SOM" />
     <link rel="apple-touch-icon" href="/point-logo-192.png" />
+    <script>
+      (function() {
+        var isAdmin = window.location.pathname.startsWith('/admin');
+        var link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = isAdmin ? '/manifest-admin.json' : '/manifest.webmanifest';
+        document.head.appendChild(link);
+      })();
+    </script>
 
 
 

@@ -1,0 +1,15 @@
+{
+  "name": "Point do SOM - Admin",
+  "short_name": "PDS Admin",
+  "description": "Painel Administrativo - Point do SOM",
+  "display": "standalone",
+  "start_url": "/admin/dashboard",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "point-logo-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "point-logo-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "point-logo-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
