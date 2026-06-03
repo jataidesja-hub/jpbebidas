@@ -860,6 +860,40 @@ function BannersTab() {
 }
 
 /* ═══════════════════════ CONFIG TAB ═══════════════════════ */
+const playAlertSound = (soundUrl: string) => {
+  if (soundUrl === 'none') return;
+  if (soundUrl === 'default') {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(659.25, ctx.currentTime);
+      gain1.gain.setValueAtTime(0, ctx.currentTime);
+      gain1.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.05);
+      gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+      osc1.start(ctx.currentTime);
+      osc1.stop(ctx.currentTime + 0.5);
+
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(523.25, ctx.currentTime + 0.4);
+      gain2.gain.setValueAtTime(0, ctx.currentTime + 0.4);
+      gain2.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.45);
+      gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.2);
+      osc2.start(ctx.currentTime + 0.4);
+      osc2.stop(ctx.currentTime + 1.2);
+    } catch(e) { console.error('Erro ao tocar som', e); }
+  } else {
+    new Audio(soundUrl).play().catch(() => {});
+  }
+};
+
 function ConfigTab() {
   const { config, setConfig, uploadImage } = useStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -946,10 +980,7 @@ function ConfigTab() {
           <div className="flex gap-2">
             <select value={form.alertSound || 'default'} onChange={e => {
               setForm(f => ({ ...f, alertSound: e.target.value }));
-              if (e.target.value !== 'none') {
-                const audio = new Audio(e.target.value === 'default' ? '/notification.mp3' : e.target.value);
-                audio.play().catch(() => {});
-              }
+              playAlertSound(e.target.value);
             }}
               className="flex-1 h-12 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 outline-none focus:ring-2 ring-primary-500 text-zinc-900 dark:text-white">
               <option value="default">Padrão (Campainha)</option>
@@ -959,13 +990,7 @@ function ConfigTab() {
               <option value="https://cdn.freesound.org/previews/226/226223_4030612-lq.mp3">Sino Suave</option>
               <option value="none">Desativado</option>
             </select>
-            <Button type="button" variant="outline" className="h-12 px-4 rounded-xl" onClick={() => {
-              if (form.alertSound && form.alertSound !== 'none') {
-                new Audio(form.alertSound === 'default' ? '/notification.mp3' : form.alertSound).play().catch(() => {});
-              } else if (!form.alertSound) {
-                new Audio('/notification.mp3').play().catch(() => {});
-              }
-            }}>Testar</Button>
+            <Button type="button" variant="outline" className="h-12 px-4 rounded-xl" onClick={() => playAlertSound(form.alertSound || 'default')}>Testar</Button>
           </div>
         </div>
       </div>
