@@ -56,7 +56,7 @@ function ProductMediaCarousel({ product }: { product: any }) {
     const ytId = getYouTubeId(url);
     if (ytId) return <iframe src={`https://www.youtube.com/embed/${ytId}`} className="w-full h-full" allowFullScreen />;
     if (url.match(/\.(mp4|mov|webm)/i)) return <video src={url} controls className="w-full h-full object-cover" />;
-    return <img src={url} className="w-full h-full object-cover" />;
+    return <img src={url} loading="lazy" decoding="async" className="w-full h-full object-cover" />;
   };
 
   return (
@@ -412,7 +412,7 @@ export default function ClientHome() {
                     const TYPE_LABEL: Record<string, string> = { promo: '🔥 PROMOÇÃO', sorteio: '🎰 SORTEIO', aviso: '📢 AVISO' };
                     return (
                       <div key={b.id} className={`rounded-2xl overflow-hidden bg-gradient-to-r ${TYPE_BG[b.type]} text-white shadow-xl`}>
-                        {b.imageUrl && <img src={b.imageUrl} alt={b.title} className="w-full max-h-48 object-cover" />}
+                        {b.imageUrl && <img src={b.imageUrl} alt={b.title} loading="lazy" decoding="async" className="w-full max-h-48 object-cover" />}
                         <div className="p-4">
                           <span className="text-[10px] font-black uppercase tracking-widest opacity-80">{TYPE_LABEL[b.type]}</span>
                           <h3 className="font-black text-xl mt-0.5">{b.title}</h3>
@@ -463,7 +463,7 @@ export default function ClientHome() {
                       className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm flex flex-col group hover:shadow-lg transition-all duration-200"
                     >
                       <div className="aspect-square relative overflow-hidden">
-                        <img src={p.imageUrl || '/placeholder.png'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        <img src={p.imageUrl || '/placeholder.png'} loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                         <div className="absolute top-2 right-2 bg-blue-600 text-white px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest flex items-center gap-1">
                           <ExternalLink className="w-2.5 h-2.5" /> Ver
                         </div>
@@ -486,7 +486,7 @@ export default function ClientHome() {
                     /* ── CARD NORMAL (carrinho) ── */
                     <div key={p.id} className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm flex flex-col">
                       <div onClick={() => setViewingProduct(p)} className="cursor-pointer aspect-square relative overflow-hidden">
-                        <img src={p.imageUrl || '/placeholder.png'} className={`w-full h-full object-cover ${(p.stock ?? 0) <= 0 ? 'grayscale opacity-50' : ''}`} />
+                        <img src={p.imageUrl || '/placeholder.png'} loading="lazy" decoding="async" className={`w-full h-full object-cover ${(p.stock ?? 0) <= 0 ? 'grayscale opacity-50' : ''}`} />
                         {pr && <div className="absolute top-2 left-2 bg-emerald-500 text-white px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest">Oferta</div>}
                       </div>
                       <div className="p-3 flex-1 flex flex-col">
@@ -556,7 +556,7 @@ export default function ClientHome() {
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {cart.map(item => (
                 <div key={item.product.id} className="flex gap-4 bg-zinc-50 dark:bg-zinc-800 rounded-2xl p-4 border border-zinc-100">
-                  <img src={item.product.imageUrl || '/placeholder.png'} className="w-20 h-20 rounded-xl object-cover shrink-0" />
+                  <img src={item.product.imageUrl || '/placeholder.png'} loading="lazy" decoding="async" className="w-20 h-20 rounded-xl object-cover shrink-0" />
                   <div className="flex-1 min-w-0">
                     <h4 className="font-black text-sm uppercase tracking-tight truncate">{item.product.name}</h4>
                     <p className="font-black text-base mt-1" style={{ color: config.primaryColor }}>{formatCurrency(getPromoPrice(item.product.id, item.product.price) ?? item.product.price)}</p>
