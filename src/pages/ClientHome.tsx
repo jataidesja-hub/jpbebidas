@@ -485,17 +485,17 @@ export default function ClientHome() {
                   ) : (
                     /* ── CARD NORMAL (carrinho) ── */
                     <div key={p.id} className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm flex flex-col">
-                      <div onClick={() => setViewingProduct(p)} className="cursor-pointer aspect-square relative overflow-hidden">
+                      <div onClick={() => { if ((p.stock ?? 0) > 0 && isOpen) { addToCart(p); setCheckoutOpen(true); } }} className="cursor-pointer aspect-square relative overflow-hidden">
                         <img src={p.imageUrl || '/placeholder.png'} className={`w-full h-full object-cover ${(p.stock ?? 0) <= 0 ? 'grayscale opacity-50' : ''}`} />
                         {pr && <div className="absolute top-2 left-2 bg-emerald-500 text-white px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest">Oferta</div>}
                       </div>
                       <div className="p-3 flex-1 flex flex-col">
-                        <h3 onClick={() => setViewingProduct(p)} className="font-black text-sm uppercase leading-tight line-clamp-2 cursor-pointer mb-2">{p.name}</h3>
+                        <h3 onClick={() => { if ((p.stock ?? 0) > 0 && isOpen) { addToCart(p); setCheckoutOpen(true); } }} className="font-black text-sm uppercase leading-tight line-clamp-2 cursor-pointer mb-2">{p.name}</h3>
                         <div className="mt-auto flex items-center justify-between">
                           <div className="flex flex-col">
                             {pr ? (<><span className="text-[10px] text-zinc-400 line-through leading-none">{formatCurrency(p.price)}</span><span className="text-sm sm:text-lg font-black leading-none" style={{ color: config.primaryColor }}>{formatCurrency(pr)}</span></>) : (<span className="text-sm sm:text-lg font-black leading-none" style={{ color: config.primaryColor }}>{formatCurrency(p.price)}</span>)}
                           </div>
-                          <button onClick={() => addToCart(p)} disabled={(p.stock ?? 0) <= 0 || !isOpen} className="w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-lg active:scale-90 disabled:grayscale" style={{ backgroundColor: config.primaryColor }}><ShoppingCart className="w-5 h-5" /></button>
+                          <button onClick={() => { addToCart(p); setCheckoutOpen(true); }} disabled={(p.stock ?? 0) <= 0 || !isOpen} className="w-10 h-10 flex items-center justify-center rounded-xl text-white shadow-lg active:scale-90 disabled:grayscale" style={{ backgroundColor: config.primaryColor }}><ShoppingCart className="w-5 h-5" /></button>
                         </div>
                       </div>
                     </div>
