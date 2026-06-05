@@ -332,9 +332,7 @@ export default function ClientHome() {
         return `\u2022 ${c.quantity}x ${c.product.name}${photos}`;
       }).join('\n');
       const mapLink = custLat && custLng ? `https://www.google.com/maps/search/?api=1&query=${custLat},${custLng}` : 'N\u00e3o informado';
-      const changeMsg = paymentMethod === 'dinheiro' && changeFor ? `\n\uD83D\uDCB5 *Troco para:* R$ ${changeFor}` : '';
-      const payLabels: Record<string, string> = { pix: 'PIX', dinheiro: 'Dinheiro vivo', cartao_credito: 'Cart\u00e3o de Cr\u00e9dito', cartao_debito: 'Cart\u00e3o de D\u00e9bito' };
-      const msg = `\uD83D\uDED2 *NOVO PEDIDO*\n\n\uD83D\uDC64 *Cliente:* ${custName}\n\uD83D\uDCF1 *WhatsApp:* ${custWhatsapp}\n\uD83D\uDCCD *Endere\u00e7o:* ${custAddress}\n\uD83D\uDDFA\uFE0F *Localiza\u00e7\u00e3o GPS:* ${mapLink}\n\n*ITENS:*\n${itemsList}\n\n\uD83D\uDCB0 *Subtotal:* ${formatCurrency(subtotal)}\n\n\uD83D\uDCB3 *Pagamento:* ${payLabels[paymentMethod] || paymentMethod}${changeMsg}\n\n*Frete a combinar*`;
+      const msg = `🛒 *NOVO PEDIDO*\n\n👤 *Cliente:* ${custName}\n📱 *WhatsApp:* ${custWhatsapp}\n📍 *Endereço:* ${custAddress}\n🗺️ *Localização GPS:* ${mapLink}\n\n*ITENS:*\n${itemsList}\n\n💰 *Subtotal:* ${formatCurrency(subtotal)}\n\n*Forma de pagamento e frete a combinar*`;
       let waNumber = config.whatsapp.replace(/\D/g, '');
       if (waNumber.length <= 11) waNumber = '55' + waNumber;
       window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`, '_blank');
@@ -610,31 +608,6 @@ export default function ClientHome() {
                       <p className="text-[10px] text-zinc-400 mt-2 text-center italic">Arraste o mapa para marcar o local exato da obra/entrega.</p>
                     </div>
 
-                    <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800">
-                      <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3">Forma de Pagamento</p>
-                      <select value={paymentMethod} onChange={(e: any) => setPaymentMethod(e.target.value)} className="w-full h-12 bg-zinc-50 dark:bg-zinc-800 rounded-xl px-4 font-bold outline-none border border-zinc-200 dark:border-zinc-700 focus:ring-2 ring-primary-500 transition-all text-sm appearance-none">
-                        <option value="pix">PIX</option>
-                        <option value="dinheiro">Dinheiro vivo</option>
-                        <option value="cartao_credito">Cartão de Crédito</option>
-                        <option value="cartao_debito">Cartão de Débito</option>
-                      </select>
-                      
-                      {paymentMethod === 'dinheiro' && (
-                         <div className="mt-3 bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 animate-in fade-in slide-in-from-top-2">
-                           <p className="text-xs font-bold text-zinc-500 mb-2">Precisa de troco para quanto?</p>
-                           <input type="number" placeholder="Ex: 50" value={changeFor} onChange={e => setChangeFor(e.target.value)} className="w-full h-10 bg-white dark:bg-zinc-900 rounded-lg px-3 font-bold outline-none border border-zinc-200 dark:border-zinc-700 focus:ring-2 ring-primary-500 text-sm" />
-                         </div>
-                      )}
-                      
-                      {paymentMethod === 'pix' && config.pixKey && (
-                        <div className="mt-3 bg-primary-50 dark:bg-primary-900/10 p-4 rounded-xl border border-primary-200 dark:border-primary-900/30 animate-in fade-in slide-in-from-top-2">
-                          <p className="text-xs font-bold text-primary-600 dark:text-primary-400 mb-1">Chave PIX da Loja:</p>
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-sm font-bold text-zinc-900 dark:text-white select-all bg-white dark:bg-zinc-900 px-2 py-1 rounded inline-block">{config.pixKey}</span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
                   </div>
                     <div className="bg-zinc-50 dark:bg-zinc-800 p-6 rounded-2xl space-y-2 border shadow-inner">
                       <div className="flex justify-between items-center pt-1">
