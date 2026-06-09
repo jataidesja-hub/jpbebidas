@@ -5,6 +5,26 @@ import { supabase } from '@/lib/supabase';
 const STORE_ID = (import.meta as any).env.VITE_STORE_ID || '1';
 console.log(`[Store] Initialized for Store ID: ${STORE_ID}`);
 
+// ── localStorage cache helpers ────────────────────────────────
+const CACHE_KEY = `mx_cache_${STORE_ID}`;
+const CACHE_TTL = 1000 * 60 * 30; // 30 min
+
+function saveCache(data: object) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data }));
+  } catch {}
+}
+
+function loadCache(): { config: StoreConfig; products: Product[]; categories: Category[]; promotions: any[]; banners: any[]; orders: Order[] } | null {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const { ts, data } = JSON.parse(raw);
+    if (Date.now() - ts > CACHE_TTL) return null; // expirado
+    return data;
+  } catch { return null; }
+}
+
 const DEFAULT_OPENING_HOURS: OpeningHours = {
   'Segunda': { open: '08:00', close: '18:00', isOpen: true },
   'Terça': { open: '08:00', close: '18:00', isOpen: true },
@@ -82,23 +102,35 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const configRef = useRef(config);
   useEffect(() => { configRef.current = config; }, [config]);
 
-  // Initial load
+  // Initial load com cache localStorage
   useEffect(() => {
+    // 1. Carrega cache imediatamente (app funciona offline)
+    const cached = loadCache();
+    if (cached) {
+      if (cached.config) setConfigState(c => ({ ...c, ...cached.config }));
+      if (cached.products) setProductsState(cached.products);
+      if (cached.categories) setCategoriesState(cached.categories);
+      if (cached.promotions) setPromotionsState(cached.promotions);
+      if (cached.banners) setBannersState(cached.banners);
+      if (cached.orders) setOrdersState(cached.orders);
+      setIsLoading(false);
+    }
+
+    // 2. Tenta buscar dados frescos do Supabase em background
     const fetchData = async () => {
       try {
-        // Fetch config separately since .single() can throw if no row exists
+        let freshConfig: StoreConfig | null = null;
         try {
           const confRes = await supabase.from('config').select('*').eq('id', STORE_ID).limit(1).single();
           if (confRes.data) {
-            const loadedConfig = { ...DEFAULT_CONFIG, ...Object.fromEntries(Object.entries(confRes.data).filter(([_, v]) => v != null)) as Partial<StoreConfig> };
-            // Ensure openingHours is not empty
-            if (!loadedConfig.openingHours || Object.keys(loadedConfig.openingHours).length === 0) {
-              loadedConfig.openingHours = DEFAULT_OPENING_HOURS;
+            freshConfig = { ...DEFAULT_CONFIG, ...Object.fromEntries(Object.entries(confRes.data).filter(([_, v]) => v != null)) as Partial<StoreConfig> };
+            if (!freshConfig.openingHours || Object.keys(freshConfig.openingHours).length === 0) {
+              freshConfig.openingHours = DEFAULT_OPENING_HOURS;
             }
-            setConfigState(loadedConfig);
+            setConfigState(freshConfig);
           }
         } catch (confErr) {
-          console.warn("Config não encontrada no Supabase, usando padrão:", confErr);
+          console.warn('[Cache] Supabase config indisponível, usando cache.');
         }
 
         const [prodRes, catRes, promRes, ordRes, banRes] = await Promise.all([
@@ -109,13 +141,29 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           supabase.from('banners').select('*').eq('store_id', STORE_ID)
         ]);
 
-        if (prodRes.data) setProductsState(prodRes.data);
-        if (catRes.data) setCategoriesState(catRes.data);
-        if (promRes.data) setPromotionsState(promRes.data);
-        if (ordRes.data) setOrdersState(ordRes.data);
-        if (banRes.data) setBannersState(banRes.data);
+        const freshProducts   = prodRes.data  || (cached?.products   ?? []);
+        const freshCategories = catRes.data   || (cached?.categories ?? []);
+        const freshPromotions = promRes.data  || (cached?.promotions ?? []);
+        const freshOrders     = ordRes.data   || (cached?.orders     ?? []);
+        const freshBanners    = banRes.data   || (cached?.banners    ?? []);
+
+        setProductsState(freshProducts);
+        setCategoriesState(freshCategories);
+        setPromotionsState(freshPromotions);
+        setOrdersState(freshOrders);
+        setBannersState(freshBanners);
+
+        // Salva tudo no cache
+        saveCache({
+          config:     freshConfig ?? cached?.config ?? DEFAULT_CONFIG,
+          products:   freshProducts,
+          categories: freshCategories,
+          promotions: freshPromotions,
+          banners:    freshBanners,
+          orders:     freshOrders,
+        });
       } catch (err) {
-        console.error("Erro ao carregar do Supabase:", err);
+        console.warn('[Cache] Supabase indisponível, usando dados em cache.', err);
       } finally {
         setIsLoading(false);
       }

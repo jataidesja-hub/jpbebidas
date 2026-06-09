@@ -54,3 +54,17 @@ export function parseNFeXML(xmlContent: string) {
   
   return items;
 }
+
+/**
+ * Otimiza URLs do Cloudinary com transformações automáticas.
+ * - Converte para WebP/AVIF automaticamente
+ * - Reduz qualidade automaticamente
+ * - Redimensiona para a largura especificada
+ * URLs não-Cloudinary são retornadas sem alteração.
+ */
+export function optimizeImageUrl(url: string | undefined | null, width = 400): string {
+  if (!url) return '';
+  if (!url.includes('res.cloudinary.com')) return url;
+  return url.replace('/upload/', `/upload/w_${width},q_auto,f_auto/`);
+}
+
