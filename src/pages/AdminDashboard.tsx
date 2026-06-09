@@ -455,7 +455,11 @@ function ProductsTab() {
                   </div>
                 </td>
                 <td className="p-4">
-                  <div className="font-semibold">{p.name}</div>
+                  <div className="font-semibold flex items-center gap-2">
+                    {p.name}
+                    {p.imageUrl?.includes('cloudinary') && <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-[9px] uppercase tracking-widest font-black px-1.5 py-0.5 rounded shadow-sm" title="Imagem armazenada no Cloudinary">Cloudinary</span>}
+                    {p.imageUrl?.includes('supabase') && <span className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-[9px] uppercase tracking-widest font-black px-1.5 py-0.5 rounded shadow-sm" title="Imagem armazenada no Supabase">Supabase</span>}
+                  </div>
                   {p.description && <div className="text-xs text-zinc-400 truncate max-w-[200px]">{p.description}</div>}
                 </td>
                 <td className="p-4 font-bold" style={{ color: 'var(--primary-500, #0284c7)' }}>R$ {p.price.toFixed(2)}</td>
