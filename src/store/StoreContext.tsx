@@ -428,8 +428,28 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (error && previous) {
       alert('Erro ao excluir produto: ' + error.message);
       setProductsState(prev => [...prev, previous]);
+      return;
+    }
+    // Apaga arquivo do Supabase Storage se a imagem for do Supabase
+    if (previous?.imageUrl?.includes('supabase')) {
+      try {
+        const fileName = previous.imageUrl.split('/images/').pop();
+        if (fileName) await supabase.storage.from('images').remove([fileName]);
+      } catch (e) { console.warn('Erro ao deletar imagem do Storage:', e); }
+    }
+    // Apaga mediaUrls do Storage também
+    if (previous?.mediaUrls?.length) {
+      const supabaseFiles = previous.mediaUrls
+        .filter(u => u.includes('supabase'))
+        .map(u => u.split('/images/').pop())
+        .filter(Boolean) as string[];
+      if (supabaseFiles.length) {
+        try { await supabase.storage.from('images').remove(supabaseFiles); }
+        catch (e) { console.warn('Erro ao deletar mediaUrls do Storage:', e); }
+      }
     }
   };
+
 
   const setProducts = (p: Product[]) => setProductsState(p);
 
