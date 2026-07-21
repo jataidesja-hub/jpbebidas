@@ -332,7 +332,9 @@ export default function ClientHome() {
         return `\u2022 ${c.quantity}x ${c.product.name}${photos}`;
       }).join('\n');
       const mapLink = custLat && custLng ? `https://www.google.com/maps/search/?api=1&query=${custLat},${custLng}` : 'N\u00e3o informado';
-      const msg = `🛒 *NOVO PEDIDO*\n\n👤 *Cliente:* ${custName}\n📱 *WhatsApp:* ${custWhatsapp}\n📍 *Endereço:* ${custAddress}\n🗺️ *Localização GPS:* ${mapLink}\n\n*ITENS:*\n${itemsList}\n\n💰 *Subtotal:* ${formatCurrency(subtotal)}\n\n*Forma de pagamento e frete a combinar*`;
+      const paymentMethodNames: any = { pix: 'PIX', dinheiro: 'Dinheiro', cartao_credito: 'Cartão de Crédito', cartao_debito: 'Cartão de Débito' };
+      const paymentInfo = paymentMethod === 'dinheiro' && changeFor ? `Dinheiro (Troco para ${formatCurrency(parseFloat(changeFor))})` : paymentMethodNames[paymentMethod] || 'A combinar';
+      const msg = `🛒 *NOVO PEDIDO*\n\n👤 *Cliente:* ${custName}\n📱 *WhatsApp:* ${custWhatsapp}\n📍 *Endereço:* ${custAddress}\n🗺️ *Localização GPS:* ${mapLink}\n\n*ITENS:*\n${itemsList}\n\n💰 *Subtotal:* ${formatCurrency(subtotal)}\n💳 *Pagamento:* ${paymentInfo}\n\n*Frete a combinar*`;
       let waNumber = config.whatsapp.replace(/\D/g, '');
       if (waNumber.length <= 11) waNumber = '55' + waNumber;
       window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`, '_blank');
@@ -582,7 +584,7 @@ export default function ClientHome() {
         <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/95 backdrop-blur-xl p-4 animate-in fade-in" onClick={() => setCheckoutOpen(false)}>
           <div className="bg-white dark:bg-zinc-900 rounded-[2rem] w-full max-w-md max-h-[90vh] overflow-y-auto relative animate-in zoom-in-95 p-8 space-y-6" onClick={e => e.stopPropagation()}>
             {orderSent ? (
-                <div className="p-16 text-center space-y-6"><h3 className="text-3xl font-black italic uppercase leading-tight">Enviado!</h3><p className="text-zinc-500 font-medium">Seu pedido foi realizado.</p></div>
+                <div className="p-16 text-center space-y-6"><h3 className="text-3xl font-black italic uppercase leading-tight">Enviado!</h3><p className="text-zinc-500 font-medium text-lg">Separando pedido, aguarde o contato.</p></div>
              ) : (
                 <>
                   <h2 className="text-3xl font-black italic uppercase tracking-tighter">Finalizar</h2>
@@ -606,6 +608,19 @@ export default function ClientHome() {
                         <MapPicker lat={custLat} lng={custLng} onChange={handleMapChange} />
                       </div>
                       <p className="text-[10px] text-zinc-400 mt-2 text-center italic">Arraste o mapa para marcar o local exato da obra/entrega.</p>
+                    </div>
+
+                    <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                      <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2">Forma de Pagamento</p>
+                      <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value as any)} className="w-full h-12 bg-zinc-50 dark:bg-zinc-800 rounded-xl px-4 font-bold outline-none border border-zinc-200 dark:border-zinc-700 focus:ring-2 ring-primary-500 transition-all text-sm mb-3 text-zinc-900 dark:text-white">
+                        <option value="pix">PIX</option>
+                        <option value="dinheiro">Dinheiro</option>
+                        <option value="cartao_credito">Cartão de Crédito</option>
+                        <option value="cartao_debito">Cartão de Débito</option>
+                      </select>
+                      {paymentMethod === 'dinheiro' && (
+                        <input type="number" value={changeFor} onChange={e => setChangeFor(e.target.value)} placeholder="Troco para quanto? (Deixe em branco se não precisar)" className="w-full h-12 bg-zinc-50 dark:bg-zinc-800 rounded-xl px-4 font-bold outline-none border border-zinc-200 dark:border-zinc-700 focus:ring-2 ring-primary-500 transition-all text-sm text-zinc-900 dark:text-white" />
+                      )}
                     </div>
 
                   </div>
