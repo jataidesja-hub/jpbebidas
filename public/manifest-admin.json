@@ -1,7 +1,7 @@
 {
-  "name": "Point do SOM ADM",
-  "short_name": "PDS ADM",
-  "description": "Painel Administrativo - Point do SOM",
+  "name": "JP Bebidas ADM",
+  "short_name": "JP ADM",
+  "description": "Painel Administrativo - JP Bebidas",
   "id": "/admin",
   "display": "standalone",
   "start_url": "/admin/dashboard",
@@ -9,8 +9,8 @@
   "theme_color": "#18181b",
   "orientation": "portrait",
   "icons": [
-    { "src": "point-logo-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "point-logo-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "point-logo-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "jpbebidas-icon.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "jpbebidas-icon.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "jpbebidas-icon.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }
