@@ -8,8 +8,9 @@ import {
   Package, LayoutGrid, Settings, BarChart, Megaphone, Search,
   MapPin, Plus, Save, LogOut, Trash2, Edit, X, Upload, Image as ImageIcon,
   Palette, Type, Phone, Store, ClipboardList, Map, Send, Link as LinkIcon, Eye,
-  Printer, Radio, Clock, ExternalLink, Globe, Loader2, Smartphone
+  Printer, Radio, Clock, ExternalLink, Globe, Loader2, Smartphone, Download
 } from "lucide-react";
+import Papa from "papaparse";
 
 
 import { MapPicker } from "@/components/MapPicker";
@@ -306,9 +307,11 @@ async function fetchOGData(url: string) {
 
 /* ═══════════════════════ PRODUCTS TAB ═══════════════════════ */
 function ProductsTab() {
-  const { products, categories, config, addProduct, updateProduct, deleteProduct, uploadImage, isSaving } = useStore();
+  const { products, categories, config, addProduct, addProductsBulk, updateProduct, deleteProduct, uploadImage, isSaving } = useStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const csvInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isCsvImporting, setIsCsvImporting] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState({ name: '', description: '', price: '', stock: '', category: '', imageUrl: '', externalUrl: '', mediaUrls: [] as string[] });
@@ -331,6 +334,65 @@ function ProductsTab() {
       })
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [products, searchFilter, activeCategory]);
+
+  const handleExportCSV = () => {
+    const data = products.length > 0 ? products.map(p => ({
+      Nome: p.name,
+      Descrição: p.description || '',
+      Preço: p.price,
+      Estoque: p.stock || 0,
+      Categoria: p.category,
+      'Imagem URL': p.imageUrl || '',
+      'Link Externo': p.externalUrl || '',
+    })) : [{
+      Nome: 'Produto Exemplo', Descrição: 'Descrição Exemplo', Preço: 10.99, Estoque: 50, Categoria: 'Diversos', 'Imagem URL': '', 'Link Externo': ''
+    }];
+    const csv = Papa.unparse(data, { quotes: true, delimiter: ';' });
+    const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = products.length > 0 ? 'produtos.csv' : 'planilha_guia_produtos.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsCsvImporting(true);
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: async (results) => {
+        try {
+          const rows = results.data as any[];
+          const newProducts = rows.map(r => ({
+            name: r.Nome || r.name || r.nome,
+            description: r.Descrição || r.description || r.descricao || '',
+            price: parseFloat(String(r.Preço || r.price || r.preco).replace(',', '.')) || 0,
+            stock: parseInt(String(r.Estoque || r.stock || r.estoque)) || 0,
+            category: r.Categoria || r.category || r.categoria || 'Diversos',
+            imageUrl: r['Imagem URL'] || r.imageUrl || r.imagem || '',
+            mediaUrls: r['Imagem URL'] || r.imageUrl || r.imagem ? [r['Imagem URL'] || r.imageUrl || r.imagem] : [],
+            externalUrl: r['Link Externo'] || r.externalUrl || r.link || '',
+          })).filter(p => p.name && p.price > 0);
+
+          if (newProducts.length > 0) {
+            await addProductsBulk(newProducts);
+            alert(`Importação concluída! Verifique os produtos adicionados.`);
+          } else {
+            alert('Nenhum produto válido encontrado. Verifique se os cabeçalhos estão corretos.');
+          }
+        } catch (error) {
+          alert('Erro ao importar CSV: ' + error);
+        } finally {
+          setIsCsvImporting(false);
+          if (csvInputRef.current) csvInputRef.current.value = '';
+        }
+      }
+    });
+  };
 
   const openNew = () => {
     setEditing(null);
@@ -412,7 +474,16 @@ function ProductsTab() {
               className="w-full h-11 pl-10 pr-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl outline-none focus:ring-2 ring-primary-500 text-sm text-zinc-900 dark:text-white"
             />
           </div>
-          <Button onClick={openNew} className="rounded-xl ml-4 h-11 shadow-lg shadow-primary-500/20"><Plus className="w-5 h-5 mr-2" /> Novo Produto</Button>
+          <div className="flex gap-2 ml-4">
+            <input type="file" accept=".csv" className="hidden" ref={csvInputRef} onChange={handleImportCSV} />
+            <Button onClick={() => csvInputRef.current?.click()} disabled={isCsvImporting} variant="outline" className="rounded-xl h-11" title="Importar Produtos">
+              {isCsvImporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+            </Button>
+            <Button onClick={handleExportCSV} variant="outline" className="rounded-xl h-11" title="Exportar/Planilha Guia">
+              <Download className="w-4 h-4" />
+            </Button>
+            <Button onClick={openNew} className="rounded-xl h-11 shadow-lg shadow-primary-500/20"><Plus className="w-5 h-5 mr-2" /> Novo Produto</Button>
+          </div>
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">

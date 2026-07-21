@@ -58,11 +58,13 @@ interface StoreContextType {
   products: Product[];
   setProducts: (p: Product[]) => void;
   addProduct: (p: Omit<Product, 'id'>) => void;
+  addProductsBulk: (newProducts: Omit<Product, 'id'>[]) => Promise<void>;
   updateProduct: (p: Product) => void;
   deleteProduct: (id: string) => void;
   categories: Category[];
   setCategories: (c: Category[]) => void;
   addCategory: (c: Omit<Category, 'id'>) => void;
+  addCategoriesBulk: (categoryNames: string[]) => Promise<void>;
   deleteCategory: (id: string) => void;
   promotions: Promotion[];
   setPromotions: (p: Promotion[]) => void;
@@ -408,6 +410,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setProductsState(prev => prev.filter(x => x.id !== newP.id)); // Reverte em caso de erro
     }
   };
+
+  const addProductsBulk = async (newProducts: Omit<Product, 'id'>[]) => {
+    const existingNames = new Set(products.map(p => p.name.toLowerCase().trim()));
+    const trulyNewProducts = newProducts.filter(p => !existingNames.has(p.name.toLowerCase().trim()));
+    if (trulyNewProducts.length === 0) return;
+
+    const toInsert = trulyNewProducts.map(p => ({ id: genId(), store_id: STORE_ID, ...p }));
+    setProductsState(prev => [...prev, ...toInsert]);
+    setIsSaving(true);
+    const { error } = await supabase.from('products').insert(toInsert);
+    setIsSaving(false);
+    if (error) {
+      alert('Erro ao salvar produtos em lote: ' + error.message);
+      const ids = new Set(toInsert.map(i => i.id));
+      setProductsState(prev => prev.filter(x => !ids.has(x.id)));
+    }
+  };
+
   const updateProduct = async (p: Product) => {
     const previous = products.find(x => x.id === p.id);
     setProductsState(prev => prev.map(x => x.id === p.id ? p : x));
@@ -465,6 +485,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setCategoriesState(prev => prev.filter(x => x.id !== newC.id));
     }
   };
+
+  const addCategoriesBulk = async (categoryNames: string[]) => {
+    const existingNames = new Set(categories.map(c => c.name.toLowerCase().trim()));
+    const newNames = categoryNames.filter(n => n.trim() && !existingNames.has(n.toLowerCase().trim()));
+    if (newNames.length === 0) return;
+
+    const toInsert = newNames.map(name => ({ id: genId(), store_id: STORE_ID, name, isExternalLinks: false }));
+    setCategoriesState(prev => [...prev, ...toInsert]);
+    setIsSaving(true);
+    const { error } = await supabase.from('categories').insert(toInsert);
+    setIsSaving(false);
+    if (error) {
+      console.error('Erro ao adicionar categorias:', error);
+      const ids = new Set(toInsert.map(i => i.id));
+      setCategoriesState(prev => prev.filter(x => !ids.has(x.id)));
+    }
+  };
+
   const deleteCategory = async (id: string) => {
     const previous = categories.find(x => x.id === id);
     setCategoriesState(prev => prev.filter(x => x.id !== id));
@@ -633,8 +671,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   return (
     <StoreContext.Provider value={{
       config, setConfig,
-      products, setProducts, addProduct, updateProduct, deleteProduct,
-      categories, setCategories, addCategory, deleteCategory,
+      products, setProducts, addProduct, addProductsBulk, updateProduct, deleteProduct,
+      categories, setCategories, addCategory, addCategoriesBulk, deleteCategory,
       promotions, setPromotions, addPromotion, updatePromotion, deletePromotion,
       orders, addOrder, updateOrderStatus, updateOrderPayment, updateOrderFee, deleteOrder,
       uploadImage, isLoading, isSaving, realtimeStatus,
