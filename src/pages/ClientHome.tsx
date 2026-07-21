@@ -151,11 +151,12 @@ export default function ClientHome() {
 
   const handleWaPointerMove = (e: React.PointerEvent) => {
     if (!dragRef.current) return;
-    setIsDraggingWa(true);
-    setWaPos({ 
-      x: dragRef.current.initX + (e.clientX - dragRef.current.startX), 
-      y: dragRef.current.initY + (e.clientY - dragRef.current.startY) 
-    });
+    const dx = e.clientX - dragRef.current.startX;
+    const dy = e.clientY - dragRef.current.startY;
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+      setIsDraggingWa(true);
+      setWaPos({ x: dragRef.current.initX + dx, y: dragRef.current.initY + dy });
+    }
   };
 
   const handleWaPointerUp = (e: React.PointerEvent) => {
@@ -178,11 +179,12 @@ export default function ClientHome() {
 
   const handleIgPointerMove = (e: React.PointerEvent) => {
     if (!igDragRef.current) return;
-    setIsDraggingIg(true);
-    setIgPos({ 
-      x: igDragRef.current.initX + (e.clientX - igDragRef.current.startX), 
-      y: igDragRef.current.initY + (e.clientY - igDragRef.current.startY) 
-    });
+    const dx = e.clientX - igDragRef.current.startX;
+    const dy = e.clientY - igDragRef.current.startY;
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+      setIsDraggingIg(true);
+      setIgPos({ x: igDragRef.current.initX + dx, y: igDragRef.current.initY + dy });
+    }
   };
 
   const handleIgPointerUp = (e: React.PointerEvent) => {
