@@ -293,7 +293,23 @@ export default function ClientHome() {
   const removeFromCart = (productId: string) => setCart(prev => prev.filter(c => c.product.id !== productId));
   const cartCount = cart.reduce((acc, c) => acc + c.quantity, 0);
   const subtotal = cart.reduce((acc, c) => acc + (getPromoPrice(c.product.id, c.product.price) ?? c.product.price) * c.quantity, 0);
-  const total = subtotal;
+
+  const distanceKm = useMemo(() => {
+    if (custLat && custLng && config.lat && config.lng) {
+      return calculateDistance(config.lat, config.lng, custLat, custLng);
+    }
+    return 0;
+  }, [custLat, custLng, config.lat, config.lng]);
+
+  const calculatedDeliveryFee = useMemo(() => {
+    if (config.deliveryFeePerKm === 0) return 0;
+    if (distanceKm > 0) {
+      return distanceKm * config.deliveryFeePerKm;
+    }
+    return 0;
+  }, [distanceKm, config.deliveryFeePerKm]);
+
+  const total = subtotal + calculatedDeliveryFee;
 
   const handleDetectLocation = () => {
     setLocating(true);
@@ -342,7 +358,7 @@ export default function ClientHome() {
     addOrder({
       items: cart, customerName: custName, customerWhatsapp: custWhatsapp,
       customerAddress: custAddress, customerLat: custLat, customerLng: custLng,
-      deliveryFee: 0, subtotal, total, paymentMethod,
+      deliveryFee: calculatedDeliveryFee, subtotal, total, paymentMethod,
       changeFor: paymentMethod === 'dinheiro' && changeFor ? parseFloat(changeFor) : null,
       isPaid: false
     });
@@ -357,7 +373,8 @@ export default function ClientHome() {
       const mapLink = custLat && custLng ? `https://www.google.com/maps/search/?api=1&query=${custLat},${custLng}` : 'N\u00e3o informado';
       const paymentMethodNames: any = { pix: 'PIX', dinheiro: 'Dinheiro', cartao_credito: 'Cartão de Crédito', cartao_debito: 'Cartão de Débito' };
       const paymentInfo = paymentMethod === 'dinheiro' && changeFor ? `Dinheiro (Troco para ${formatCurrency(parseFloat(changeFor))})` : paymentMethodNames[paymentMethod] || 'A combinar';
-      const msg = `🛒 *NOVO PEDIDO*\n\n👤 *Cliente:* ${custName}\n📱 *WhatsApp:* ${custWhatsapp}\n📍 *Endereço:* ${custAddress}\n🗺️ *Localização GPS:* ${mapLink}\n\n*ITENS:*\n${itemsList}\n\n💰 *Subtotal:* ${formatCurrency(subtotal)}\n💳 *Pagamento:* ${paymentInfo}\n\n*Frete a combinar*`;
+      const deliveryText = calculatedDeliveryFee === 0 ? '*Frete Grátis*' : `*Frete:* ${formatCurrency(calculatedDeliveryFee)}`;
+      const msg = `🛒 *NOVO PEDIDO*\n\n👤 *Cliente:* ${custName}\n📱 *WhatsApp:* ${custWhatsapp}\n📍 *Endereço:* ${custAddress}\n🗺️ *Localização GPS:* ${mapLink}\n\n*ITENS:*\n${itemsList}\n\n💰 *Subtotal:* ${formatCurrency(subtotal)}\n🚚 ${deliveryText}\n💳 *Pagamento:* ${paymentInfo}\n\n🧾 *TOTAL:* ${formatCurrency(total)}`;
       let waNumber = config.whatsapp.replace(/\D/g, '');
       if (waNumber.length <= 11) waNumber = '55' + waNumber;
       window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`, '_blank');
@@ -659,9 +676,19 @@ export default function ClientHome() {
                     <div className="bg-zinc-50 dark:bg-zinc-800 p-6 rounded-2xl space-y-2 border shadow-inner">
                       <div className="flex justify-between items-center pt-1">
                         <span className="text-xl font-black italic uppercase">Subtotal</span>
-                        <span className="text-3xl font-black italic" style={{ color: config.primaryColor }}>{formatCurrency(total)}</span>
+                        <span className="text-2xl font-black italic" style={{ color: config.primaryColor }}>{formatCurrency(subtotal)}</span>
                       </div>
-                      <p className="text-xs text-zinc-400 italic">Frete a combinar pelo WhatsApp</p>
+                      <div className="flex justify-between items-center py-2 border-b border-zinc-200 dark:border-zinc-700">
+                        <span className="text-sm font-bold uppercase text-zinc-500">Frete</span>
+                        <span className={`text-sm font-black uppercase ${calculatedDeliveryFee === 0 ? 'text-emerald-500' : 'text-zinc-500'}`}>
+                          {calculatedDeliveryFee === 0 ? 'Grátis' : formatCurrency(calculatedDeliveryFee)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center pt-3">
+                        <span className="text-2xl font-black italic uppercase">Total</span>
+                        <span className="text-4xl font-black italic" style={{ color: config.primaryColor }}>{formatCurrency(total)}</span>
+                      </div>
+                      {(!custLat || !custLng) && <p className="text-xs text-zinc-400 italic text-center mt-4">Use a localização GPS ou pesquise no mapa para calcular o frete corretamente.</p>}
                     </div>
                   <button onClick={handleSendOrder} className="w-full h-16 text-white rounded-2xl font-black uppercase text-xl shadow-2xl flex items-center justify-center gap-3" style={{ backgroundColor: config.primaryColor }}>Confirmar Pedido <Send className="w-5 h-5" /></button>
                 </>
