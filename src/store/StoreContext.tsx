@@ -572,8 +572,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   };
 
   // ORDERS
-  const addOrder = async (o: Omit<Order, 'id' | 'createdAt' | 'status'>) => {
-    const newO: Order = { ...o, id: genId(), createdAt: new Date().toISOString(), status: 'pending' };
+  const addOrder = async (o: Omit<Order, 'id' | 'createdAt' | 'status'> & { status?: Order['status'] }) => {
+    const newO: Order = { ...o, id: genId(), createdAt: new Date().toISOString(), status: o.status || 'pending' };
     const dbOrder = { ...newO, store_id: STORE_ID };
     setOrdersState(prev => [...prev, newO]);
     setIsSaving(true);
