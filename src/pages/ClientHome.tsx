@@ -303,6 +303,29 @@ export default function ClientHome() {
     );
   };
 
+  const searchAddressOnMap = async () => {
+    if (!custAddress) return;
+    setLocating(true);
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(custAddress)}&limit=1`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.length > 0) {
+          const lat = parseFloat(data[0].lat);
+          const lng = parseFloat(data[0].lon);
+          setCustLat(lat);
+          setCustLng(lng);
+        } else {
+          alert('Endereço não encontrado no mapa.');
+        }
+      }
+    } catch (e) {
+      alert('Erro ao buscar endereço.');
+    } finally {
+      setLocating(false);
+    }
+  };
+
   const handleMapChange = async (lat: number, lng: number) => {
     setCustLat(lat); setCustLng(lng);
     try {
@@ -596,7 +619,16 @@ export default function ClientHome() {
                       <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2"><MapPin className="w-4 h-4" /> Local de Entrega</p>
                       
                       <div className="bg-zinc-50 dark:bg-zinc-800/50 p-1 rounded-xl flex items-center mb-3">
-                        <input value={custAddress} onChange={e => setCustAddress(e.target.value)} placeholder="Digite o endereço completo" className="h-10 bg-transparent flex-1 px-3 font-bold outline-none text-sm text-zinc-900 dark:text-white" />
+                        <input 
+                          value={custAddress} 
+                          onChange={e => setCustAddress(e.target.value)} 
+                          onKeyDown={e => { if(e.key === 'Enter') searchAddressOnMap() }}
+                          placeholder="Digite o endereço e pesquise" 
+                          className="h-10 bg-transparent flex-1 px-3 font-bold outline-none text-sm text-zinc-900 dark:text-white" 
+                        />
+                        <Button onClick={searchAddressOnMap} disabled={locating || !custAddress} className="h-10 rounded-lg shrink-0 px-3" style={{ backgroundColor: config.primaryColor }}>
+                          <Search className="w-4 h-4 text-white" />
+                        </Button>
                       </div>
                       
                       <Button variant="outline" onClick={handleDetectLocation} disabled={locating} className="w-full h-12 rounded-xl border-dashed border-2 mb-3">
