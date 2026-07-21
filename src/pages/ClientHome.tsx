@@ -123,6 +123,11 @@ export default function ClientHome() {
   const [promoPopupOpen, setPromoPopupOpen] = useState(false);
   const [initialPromo, setInitialPromo] = useState<any>(null);
   const [infoClosed, setInfoClosed] = useState(false);
+  const [selectedQty, setSelectedQty] = useState(1);
+
+  useEffect(() => {
+    if (viewingProduct) setSelectedQty(1);
+  }, [viewingProduct]);
 
   // Checkout form
   const [custName, setCustName] = useState("");
@@ -282,15 +287,15 @@ export default function ClientHome() {
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [activeCategory, searchTerm, products]);
 
-  const addToCart = (product: typeof products[0]) => {
+  const addToCart = (product: typeof products[0], qty: number = 1) => {
     if (!isOpen) { alert('Loja fechada!'); return; }
     setCart(prev => {
       const existing = prev.find(c => c.product.id === product.id);
-      if (product.stock !== undefined && product.stock !== null && (existing?.quantity || 0) >= product.stock) {
+      if (product.stock !== undefined && product.stock !== null && (existing?.quantity || 0) + qty > product.stock) {
         alert('Estoque insuficiente!'); return prev;
       }
-      if (existing) return prev.map(c => c.product.id === product.id ? { ...c, quantity: c.quantity + 1 } : c);
-      return [...prev, { product, quantity: 1 }];
+      if (existing) return prev.map(c => c.product.id === product.id ? { ...c, quantity: c.quantity + qty } : c);
+      return [...prev, { product, quantity: qty }];
     });
   };
 
@@ -740,12 +745,24 @@ export default function ClientHome() {
                 {viewingProduct.price > 0 && <span className="text-4xl font-black italic" style={{ color: config.primaryColor }}>{formatCurrency(getPromoPrice(viewingProduct.id, viewingProduct.price) ?? viewingProduct.price)}</span>}
                 {!viewingProduct.externalUrl && <span className={`text-xs font-black uppercase ${(viewingProduct.stock ?? 0) <= 0 ? 'text-red-500' : 'text-emerald-500'}`}>{(viewingProduct.stock ?? 0) <= 0 ? 'Esgotado' : `${viewingProduct.stock} un.`}</span>}
               </div>
+              
+              {!viewingProduct.externalUrl && (viewingProduct.stock === undefined || viewingProduct.stock > 0) && (
+                <div className="flex items-center justify-between mb-6 bg-zinc-50 dark:bg-zinc-800 p-3 rounded-2xl border border-zinc-100 dark:border-zinc-700">
+                  <span className="text-sm font-bold ml-2 uppercase text-zinc-500 tracking-wider">Quantidade</span>
+                  <div className="flex items-center gap-4">
+                    <button onClick={() => setSelectedQty(Math.max(1, selectedQty - 1))} className="w-12 h-12 rounded-xl bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center active:scale-90 transition-all"><Minus className="w-5 h-5 text-zinc-700 dark:text-zinc-200" /></button>
+                    <span className="text-2xl font-black w-8 text-center">{selectedQty}</span>
+                    <button onClick={() => setSelectedQty(Math.min(viewingProduct.stock || 999, selectedQty + 1))} className="w-12 h-12 rounded-xl flex items-center justify-center text-white active:scale-90 transition-all" style={{ backgroundColor: config.primaryColor }}><Plus className="w-5 h-5" /></button>
+                  </div>
+                </div>
+              )}
+
               {viewingProduct.externalUrl ? (
                 <a href={viewingProduct.externalUrl} target="_blank" rel="noopener noreferrer" className="w-full h-16 rounded-2xl text-white font-black uppercase text-xl shadow-2xl flex items-center justify-center gap-3" style={{ backgroundColor: config.primaryColor }}>
                   <ExternalLink className="w-6 h-6" /> Ver no Site
                 </a>
               ) : (
-                <button onClick={() => { addToCart(viewingProduct); setViewingProduct(null); setCheckoutOpen(true); }} disabled={(viewingProduct.stock ?? 0) <= 0 || !isOpen} className="w-full h-16 rounded-2xl text-white font-black uppercase text-xl shadow-2xl disabled:grayscale" style={{ backgroundColor: config.primaryColor }}>{!isOpen ? 'Loja Fechada' : 'Finalizar Compra'}</button>
+                <button onClick={() => { addToCart(viewingProduct, selectedQty); setViewingProduct(null); setCheckoutOpen(true); }} disabled={(viewingProduct.stock ?? 0) <= 0 || !isOpen} className="w-full h-16 rounded-2xl text-white font-black uppercase text-xl shadow-2xl disabled:grayscale" style={{ backgroundColor: config.primaryColor }}>{!isOpen ? 'Loja Fechada' : 'Finalizar Compra'}</button>
               )}
             </div>
           </div>
