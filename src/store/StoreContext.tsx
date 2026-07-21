@@ -36,7 +36,7 @@ const DEFAULT_OPENING_HOURS: OpeningHours = {
 };
 
 const DEFAULT_CONFIG: StoreConfig = {
-  name: 'Point do SOM',
+  name: 'JP Bebidas',
   font: 'Inter',
   primaryColor: '#ef4444',
   logoUrl: '',
@@ -44,7 +44,7 @@ const DEFAULT_CONFIG: StoreConfig = {
   lat: -16.7445258,
   lng: -49.336495,
   deliveryFeePerKm: 2,
-  slogan: 'As melhores porções da região!',
+  slogan: 'As melhores bebidas da região!',
   whatsapp: '5562991090176',
   pixKey: '',
   openingHours: DEFAULT_OPENING_HOURS,
