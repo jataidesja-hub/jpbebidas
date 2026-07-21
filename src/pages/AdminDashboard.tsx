@@ -8,7 +8,8 @@ import {
   Package, LayoutGrid, Settings, BarChart, Megaphone, Search,
   MapPin, Plus, Save, LogOut, Trash2, Edit, X, Upload, Image as ImageIcon,
   Palette, Type, Phone, Store, ClipboardList, Map, Send, Link as LinkIcon, Eye,
-  Printer, Radio, Clock, ExternalLink, Globe, Loader2, Smartphone, Download
+  Printer, Radio, Clock, ExternalLink, Globe, Loader2, Smartphone, Download,
+  ShoppingCart, Minus
 } from "lucide-react";
 import Papa from "papaparse";
 
