@@ -136,6 +136,7 @@ export default function ClientHome() {
   
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
+  const [isIOSPrompt, setIsIOSPrompt] = useState(false);
 
   // WhatsApp Drag State
   const [waPos, setWaPos] = useState({ x: 0, y: 0 });
@@ -216,6 +217,19 @@ export default function ClientHome() {
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // iOS detection
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
+    const isStandalone = ('standalone' in window.navigator) && (window.navigator as any).standalone;
+    
+    if (isIosDevice && !isStandalone) {
+      const iosPromptShown = sessionStorage.getItem('mx_ios_prompt');
+      if (!iosPromptShown) {
+        setIsIOSPrompt(true);
+      }
+    }
+
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   }, []);
 
@@ -727,9 +741,7 @@ export default function ClientHome() {
       {showInstallBanner && (
         <div className="fixed bottom-32 left-4 right-4 bg-white dark:bg-zinc-900 p-4 rounded-2xl shadow-2xl border border-zinc-100 dark:border-zinc-800 z-[400] flex items-center justify-between animate-in slide-in-from-bottom-10 md:hidden">
           <div className="flex items-center gap-3 shrink-0">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg bg-cover bg-center overflow-hidden" style={{ backgroundColor: config.primaryColor, backgroundImage: config.logoUrl ? `url(${config.logoUrl})` : 'none' }}>
-              {!config.logoUrl && <Download className="w-5 h-5" />}
-            </div>
+            <img src="/jpbebidas-icon.png" className="w-10 h-10 rounded-xl shadow-lg object-cover" alt="Icon" />
             <div>
               <p className="text-sm font-black uppercase tracking-tight">Instalar Aplicativo</p>
               <p className="text-[10px] text-zinc-500 font-bold">Acesse mais rápido e offline</p>
@@ -739,6 +751,19 @@ export default function ClientHome() {
             <button onClick={() => setShowInstallBanner(false)} className="px-3 py-2 text-xs font-bold text-zinc-400">Agora não</button>
             <button onClick={handleInstallClick} className="px-4 py-2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-950 rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-90">Instalar</button>
           </div>
+        </div>
+      )}
+
+      {isIOSPrompt && (
+        <div className="fixed bottom-32 left-4 right-4 bg-white dark:bg-zinc-900 p-4 rounded-2xl shadow-2xl border border-zinc-100 dark:border-zinc-800 z-[400] flex items-center justify-between animate-in slide-in-from-bottom-10 md:hidden">
+          <div className="flex items-center gap-3 shrink-0">
+            <img src="/jpbebidas-icon.png" className="w-10 h-10 rounded-xl shadow-lg object-cover" alt="Icon" />
+            <div className="pr-2">
+              <p className="text-sm font-black uppercase tracking-tight">Instalar no iPhone</p>
+              <p className="text-[10px] text-zinc-500 font-bold leading-tight mt-0.5">Toque em Compartilhar e em "Adicionar à Tela de Início"</p>
+            </div>
+          </div>
+          <button onClick={() => { setIsIOSPrompt(false); sessionStorage.setItem('mx_ios_prompt', 'true'); }} className="px-4 py-2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-950 rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-90">Entendi</button>
         </div>
       )}
 

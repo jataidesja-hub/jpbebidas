@@ -23,9 +23,9 @@ export default defineConfig({
 
 
       manifest: {
-        name: 'Point do SOM',
-        short_name: 'Point do SOM',
-        description: 'Painel do Cliente - Point do SOM',
+        name: 'JP Bebidas',
+        short_name: 'JP Bebidas',
+        description: 'App JP Bebidas',
         id: '/',
         display: 'standalone',
         start_url: '/',
@@ -34,17 +34,17 @@ export default defineConfig({
         orientation: 'portrait',
         icons: [
           {
-            src: 'point-logo-192.png',
+            src: 'jpbebidas-icon.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'point-logo-512.png',
+            src: 'jpbebidas-icon.png',
             sizes: '512x512',
             type: 'image/png'
           },
           {
-            src: 'point-logo-512.png',
+            src: 'jpbebidas-icon.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable'
