@@ -131,6 +131,7 @@ export default function ClientHome() {
   const [custLat, setCustLat] = useState(0);
   const [custLng, setCustLng] = useState(0);
   const [locating, setLocating] = useState(false);
+  const [deliveryMethod, setDeliveryMethod] = useState<'delivery' | 'pickup'>('delivery');
   const [paymentMethod, setPaymentMethod] = useState<'pix' | 'dinheiro' | 'cartao_credito' | 'cartao_debito'>('pix');
   const [changeFor, setChangeFor] = useState("");
   
@@ -318,12 +319,13 @@ export default function ClientHome() {
   }, [custLat, custLng, config.lat, config.lng]);
 
   const calculatedDeliveryFee = useMemo(() => {
+    if (deliveryMethod === 'pickup') return 0;
     if (config.deliveryFeePerKm === 0) return 0;
     if (distanceKm > 0) {
       return distanceKm * config.deliveryFeePerKm;
     }
     return 0;
-  }, [distanceKm, config.deliveryFeePerKm]);
+  }, [distanceKm, config.deliveryFeePerKm, deliveryMethod]);
 
   const total = subtotal + calculatedDeliveryFee;
 
@@ -386,11 +388,12 @@ export default function ClientHome() {
           : c.product.imageUrl ? `\n    \uD83D\uDCF8 ${c.product.imageUrl}` : '';
         return `\u2022 ${c.quantity}x ${c.product.name}${photos}`;
       }).join('\n');
-      const mapLink = custLat && custLng ? `https://www.google.com/maps/search/?api=1&query=${custLat},${custLng}` : 'N\u00e3o informado';
+      const mapLink = deliveryMethod === 'pickup' ? 'Retirada no Local' : (custLat && custLng ? `https://www.google.com/maps/search/?api=1&query=${custLat},${custLng}` : 'N\u00e3o informado');
       const paymentMethodNames: any = { pix: 'PIX', dinheiro: 'Dinheiro', cartao_credito: 'Cartão de Crédito', cartao_debito: 'Cartão de Débito' };
       const paymentInfo = paymentMethod === 'dinheiro' && changeFor ? `Dinheiro (Troco para ${formatCurrency(parseFloat(changeFor))})` : paymentMethodNames[paymentMethod] || 'A combinar';
-      const deliveryText = calculatedDeliveryFee === 0 ? '*Frete Grátis*' : `*Frete:* ${formatCurrency(calculatedDeliveryFee)}`;
-      const msg = `🛒 *NOVO PEDIDO*\n\n👤 *Cliente:* ${custName}\n📱 *WhatsApp:* ${custWhatsapp}\n📍 *Endereço:* ${custAddress}\n🗺️ *Localização GPS:* ${mapLink}\n\n*ITENS:*\n${itemsList}\n\n💰 *Subtotal:* ${formatCurrency(subtotal)}\n🚚 ${deliveryText}\n💳 *Pagamento:* ${paymentInfo}\n\n🧾 *TOTAL:* ${formatCurrency(total)}`;
+      const deliveryText = deliveryMethod === 'pickup' ? '*Entrega:* Retirada no Local' : (calculatedDeliveryFee === 0 ? '*Frete Grátis*' : `*Frete:* ${formatCurrency(calculatedDeliveryFee)}`);
+      const addrStr = deliveryMethod === 'pickup' ? 'Retirada na Distribuidora' : custAddress;
+      const msg = `🛒 *NOVO PEDIDO*\n\n👤 *Cliente:* ${custName}\n📱 *WhatsApp:* ${custWhatsapp}\n📍 *Endereço:* ${addrStr}\n🗺️ *Localização GPS:* ${mapLink}\n\n*ITENS:*\n${itemsList}\n\n💰 *Subtotal:* ${formatCurrency(subtotal)}\n🚚 ${deliveryText}\n💳 *Pagamento:* ${paymentInfo}\n\n🧾 *TOTAL:* ${formatCurrency(total)}`;
       let waNumber = config.whatsapp.replace(/\D/g, '');
       if (waNumber.length <= 11) waNumber = '55' + waNumber;
       window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`, '_blank');
@@ -649,30 +652,39 @@ export default function ClientHome() {
                     <input value={custWhatsapp?.startsWith('+55') ? custWhatsapp : '+55 ' + (custWhatsapp || '')} onChange={e => { let v = e.target.value; if (!v.startsWith('+55 ')) v = '+55 ' + v.replace(/^\+?55\s*/, ''); setCustWhatsapp(v); }} placeholder="Seu WhatsApp (com DDD)" className="w-full h-12 bg-zinc-50 dark:bg-zinc-800 rounded-xl px-4 font-bold outline-none border border-zinc-200 dark:border-zinc-700 focus:ring-2 ring-primary-500 transition-all text-sm" />
                     
                     <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800">
-                      <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2"><MapPin className="w-4 h-4" /> Local de Entrega</p>
+                      <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2"><MapPin className="w-4 h-4" /> Opções de Entrega</p>
                       
-                      <div className="bg-zinc-50 dark:bg-zinc-800/50 p-1 rounded-xl flex items-center mb-3">
-                        <input 
-                          value={custAddress} 
-                          onChange={e => setCustAddress(e.target.value)} 
-                          onKeyDown={e => { if(e.key === 'Enter') searchAddressOnMap() }}
-                          placeholder="Digite o endereço e pesquise" 
-                          className="h-10 bg-transparent flex-1 px-3 font-bold outline-none text-sm text-zinc-900 dark:text-white" 
-                        />
-                        <Button onClick={searchAddressOnMap} disabled={locating || !custAddress} className="h-10 rounded-lg shrink-0 px-3" style={{ backgroundColor: config.primaryColor }}>
-                          <Search className="w-4 h-4 text-white" />
-                        </Button>
+                      <div className="flex gap-2 mb-4">
+                        <button onClick={() => setDeliveryMethod('delivery')} className={`flex-1 h-12 rounded-xl text-sm font-bold uppercase transition-all ${deliveryMethod === 'delivery' ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900' : 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800'}`}>Entrega</button>
+                        <button onClick={() => setDeliveryMethod('pickup')} className={`flex-1 h-12 rounded-xl text-sm font-bold uppercase transition-all ${deliveryMethod === 'pickup' ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900' : 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800'}`}>Retirar no Local</button>
                       </div>
-                      
-                      <Button variant="outline" onClick={handleDetectLocation} disabled={locating} className="w-full h-12 rounded-xl border-dashed border-2 mb-3">
-                        <Navigation className={`w-4 h-4 mr-2 ${locating ? 'animate-spin' : ''}`} /> 
-                        {locating ? 'Obtendo localização...' : 'Usar minha localização atual GPS'}
-                      </Button>
-                      
-                      <div className="rounded-xl overflow-hidden border-2 border-primary-500/20 shadow-inner">
-                        <MapPicker lat={custLat} lng={custLng} onChange={handleMapChange} />
-                      </div>
-                      <p className="text-[10px] text-zinc-400 mt-2 text-center italic">Arraste o mapa para marcar o local exato da obra/entrega.</p>
+
+                      {deliveryMethod === 'delivery' && (
+                        <>
+                          <div className="bg-zinc-50 dark:bg-zinc-800/50 p-1 rounded-xl flex items-center mb-3">
+                            <input 
+                              value={custAddress} 
+                              onChange={e => setCustAddress(e.target.value)} 
+                              onKeyDown={e => { if(e.key === 'Enter') searchAddressOnMap() }}
+                              placeholder="Digite o endereço e pesquise" 
+                              className="h-10 bg-transparent flex-1 px-3 font-bold outline-none text-sm text-zinc-900 dark:text-white" 
+                            />
+                            <Button onClick={searchAddressOnMap} disabled={locating || !custAddress} className="h-10 rounded-lg shrink-0 px-3" style={{ backgroundColor: config.primaryColor }}>
+                              <Search className="w-4 h-4 text-white" />
+                            </Button>
+                          </div>
+                          
+                          <Button variant="outline" onClick={handleDetectLocation} disabled={locating} className="w-full h-12 rounded-xl border-dashed border-2 mb-3">
+                            <Navigation className={`w-4 h-4 mr-2 ${locating ? 'animate-spin' : ''}`} /> 
+                            {locating ? 'Obtendo localização...' : 'Usar minha localização atual GPS'}
+                          </Button>
+                          
+                          <div className="rounded-xl overflow-hidden border-2 border-primary-500/20 shadow-inner">
+                            <MapPicker lat={custLat} lng={custLng} onChange={handleMapChange} />
+                          </div>
+                          <p className="text-[10px] text-zinc-400 mt-2 text-center italic">Arraste o mapa para marcar o local exato da obra/entrega.</p>
+                        </>
+                      )}
                     </div>
 
                     <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800">
